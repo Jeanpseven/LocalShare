@@ -1,5 +1,6 @@
 import shutil
 import os
+import socket
 
 # Diretório do servidor web (geralmente /var/www/html/)
 diretorio_destino = '/var/www/html'
@@ -25,7 +26,6 @@ for root, _, files in os.walk(diretorio_origem):
             print(f"Erro ao copiar arquivo '{arquivo}': {e}")
 
 # Obter o endereço IP do servidor
-import socket
 endereco_ip = socket.gethostbyname(socket.gethostname())
 
 # Imprimir o link para acessar os arquivos no navegador
