@@ -16,7 +16,13 @@ diretorio_origem=$(pwd)
 cp -r "$diretorio_origem"/* "$diretorio_destino"
 
 # Obter o endereço IP do servidor
-endereco_ip=$(hostname -I | awk '{print $1}')
+endereco_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+
+# Verificar se o endereço IP foi obtido corretamente
+if [ -z "$endereco_ip" ]; then
+    echo "Não foi possível obter o endereço IP do servidor."
+    exit 1
+fi
 
 # Imprimir o link para acessar os arquivos no navegador
 echo "Processo de compartilhamento de arquivos concluído."
