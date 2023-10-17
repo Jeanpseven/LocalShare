@@ -1,35 +1,30 @@
 #!/bin/bash
 
-# Solicitar o nome da pasta compartilhada
-read -p "Digite o nome da pasta compartilhada: " pasta_compartilhada
+# Diretório de origem dos arquivos que você deseja compartilhar
+diretorio_origem="/caminho/do/diretorio_de_origem"
 
-# Verificar se o SAMBA está instalado
-if ! [ -x "$(command -v smbclient)" ]; then
-  echo "O SAMBA não está instalado. Instalando..."
-  sudo apt-get update
-  sudo apt-get install samba -y
+# Diretório do servidor web (geralmente /var/www/html/)
+diretorio_destino="/var/www/html"
+
+# Verificar se o diretório de origem existe
+if [ ! -d "$diretorio_origem" ]; then
+    echo "O diretório de origem '$diretorio_origem' não existe."
+    exit 1
 fi
 
-# Criar a pasta compartilhada
-mkdir ~/"$pasta_compartilhada"
+# Verificar se o diretório de destino existe
+if [ ! -d "$diretorio_destino" ]; then
+    echo "O diretório de destino '$diretorio_destino' não existe."
+    exit 1
+fi
 
-# Configurar o compartilhamento no arquivo smb.conf
-config_samba="[${pasta_compartilhada}]
-   comment = Shared Folder
-   path = /home/$(whoami)/${pasta_compartilhada}
-   browseable = yes
-   read only = no
-   guest ok = yes
-"
-echo "$config_samba" | sudo tee -a /etc/samba/smb.conf
+# Copiar arquivos para o diretório de destino
+cp -r "$diretorio_origem"/* "$diretorio_destino"
 
-# Reiniciar o serviço SAMBA
-sudo service smbd restart
+# Obter o endereço IP do servidor
+endereco_ip=$(hostname -I | awk '{print $1}')
 
-# Obter o endereço IP local
-local_ip=$(hostname -I | awk '{print $1}')
-
-# Imprimir o endereço IP e a URL de acesso
-echo "Pasta compartilhada \"$pasta_compartilhada\" criada com sucesso!"
-echo "Endereço IP local do servidor: $local_ip"
-echo "Você pode acessar a pasta em smb://$local_ip/$pasta_compartilhada"
+# Imprimir o link para acessar os arquivos no navegador
+echo "Processo de compartilhamento de arquivos concluído."
+echo "Acesse os arquivos no navegador usando o seguinte link:"
+echo "http://$endereco_ip/$(basename $diretorio_destino)/"
