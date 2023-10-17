@@ -1,29 +1,41 @@
+import shutil
 import os
 
-# Solicitar o nome da pasta compartilhada
-pasta_compartilhada = input("Digite o nome da pasta compartilhada: ")
+# Diretório de origem dos arquivos que você deseja compartilhar
+diretorio_origem = '/caminho/do/diretorio_de_origem'
 
-# Criar a pasta compartilhada
-if not os.path.exists(pasta_compartilhada):
-    os.makedirs(pasta_compartilhada)
+# Diretório do servidor web (geralmente /var/www/html/)
+diretorio_destino = '/var/www/html'
 
-# Configurar o compartilhamento no arquivo smb.conf
-compartilhamento = f"[{pasta_compartilhada}]\n" \
-                  f"   path = {os.path.abspath(pasta_compartilhada)}\n" \
-                  f"   browseable = yes\n" \
-                  f"   read only = no\n" \
-                  f"   guest ok = yes\n"
+# Verificar se o diretório de origem existe
+if not os.path.exists(diretorio_origem):
+    print(f"O diretório de origem '{diretorio_origem}' não existe.")
+    exit(1)
 
-with open("/etc/samba/smb.conf", "a") as smb_conf:
-    smb_conf.write(compartilhamento)
+# Verificar se o diretório de destino existe
+if not os.path.exists(diretorio_destino):
+    print(f"O diretório de destino '{diretorio_destino}' não existe.")
+    exit(1)
 
-# Reiniciar o serviço SAMBA
-os.system("sudo service smbd restart")
+# Listar arquivos no diretório de origem
+arquivos = os.listdir(diretorio_origem)
 
-# Obter o endereço IP local
-local_ip = os.popen("hostname -I | awk '{print $1}'").read().strip()
+# Copiar arquivos para o diretório de destino
+for arquivo in arquivos:
+    caminho_arquivo_origem = os.path.join(diretorio_origem, arquivo)
+    caminho_arquivo_destino = os.path.join(diretorio_destino, arquivo)
 
-# Imprimir o endereço IP e a URL de acesso
-print(f"Pasta compartilhada \"{pasta_compartilhada}\" criada com sucesso!")
-print(f"Endereço IP local do servidor: {local_ip}")
-print(f"Você pode acessar a pasta em smb://{local_ip}/{pasta_compartilhada}")
+    try:
+        shutil.copy(caminho_arquivo_origem, caminho_arquivo_destino)
+        print(f"Arquivo '{arquivo}' copiado com sucesso para o diretório de destino.")
+    except Exception as e:
+        print(f"Erro ao copiar arquivo '{arquivo}': {e}")
+
+# Obter o endereço IP do servidor
+import socket
+endereco_ip = socket.gethostbyname(socket.gethostname())
+
+# Imprimir o link para acessar os arquivos no navegador
+print(f"Processo de compartilhamento de arquivos concluído.")
+print(f"Acesse os arquivos no navegador usando o seguinte link:")
+print(f"http://{endereco_ip}/{os.path.basename(diretorio_destino)}/")
